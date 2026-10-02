@@ -1,5 +1,5 @@
 // Schulapp – Service Worker (Offline-Grundgerüst; Push folgt in Phase 4)
-const CACHE = 'schulapp-v2';
+const CACHE = 'schulapp-v3';   // bei jeder neuen Version hochzählen
 const DATEIEN = ['./', './index.html', './app.js', './style.css', './manifest.webmanifest',
   './icon-192.png', './icon-512.png', './apple-touch-icon.png'];
 
@@ -19,7 +19,7 @@ self.addEventListener('fetch', (e) => {
   const url = new URL(req.url);
   if (url.hostname.endsWith('supabase.co')) return;           // Daten immer live
   if (url.origin === location.origin) {                       // eigene Dateien: erst Netz, sonst Cache
-    e.respondWith(fetch(req).then((res) => {
+    e.respondWith(fetch(req.url, { cache: 'no-cache', credentials: 'same-origin' }).then((res) => {
       const kopie = res.clone(); caches.open(CACHE).then((c) => c.put(req, kopie)); return res;
     }).catch(() => caches.match(req).then((r) => r || caches.match('./index.html'))));
     return;

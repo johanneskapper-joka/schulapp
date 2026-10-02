@@ -23,7 +23,19 @@
   <script type="module" src="./app.js"></script>
   <script>
     if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js'));
+      // Neue Version erkennen und einmal automatisch neu laden
+      const hatteSteuerung = !!navigator.serviceWorker.controller;
+      let neuGeladen = false;
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (hatteSteuerung && !neuGeladen) { neuGeladen = true; location.reload(); }
+      });
+      window.addEventListener('load', async () => {
+        const reg = await navigator.serviceWorker.register('./sw.js', { updateViaCache: 'none' });
+        reg.update();
+        document.addEventListener('visibilitychange', () => {
+          if (document.visibilityState === 'visible') reg.update();
+        });
+      });
     }
   </script>
 </body>
