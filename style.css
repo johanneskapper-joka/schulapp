@@ -1,0 +1,207 @@
+:root {
+  --papier: #F2F5F8;
+  --blatt: #FFFFFF;
+  --tinte: #1E2B45;
+  --blei: #5B6B85;
+  --linie: #D5DDE7;
+  --karo: rgba(30, 43, 69, 0.05);
+  --rot: #C8323C;
+  --stern: #E8A900;
+  --kind: #2563eb;
+  --schrift: "Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", sans-serif;
+  box-sizing: border-box;
+  padding-top: env(safe-area-inset-top, 0px);
+  color-scheme: light dark;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --papier: #121826;
+    --blatt: #1B2334;
+    --tinte: #E6EBF3;
+    --blei: #9AA7BD;
+    --linie: #2E3A52;
+    --karo: rgba(230, 235, 243, 0.04);
+  }
+}
+:root[data-theme="dark"] {
+  --papier: #121826; --blatt: #1B2334; --tinte: #E6EBF3;
+  --blei: #9AA7BD; --linie: #2E3A52; --karo: rgba(230, 235, 243, 0.04);
+}
+
+*, *::before, *::after { box-sizing: inherit; }
+html { height: 100%; }
+body {
+  margin: 0; min-height: 100%;
+  font-family: var(--schrift); font-size: 17px; line-height: 1.45;
+  color: var(--tinte); background-color: var(--papier);
+  background-image:
+    linear-gradient(var(--karo) 1px, transparent 1px),
+    linear-gradient(90deg, var(--karo) 1px, transparent 1px);
+  background-size: 22px 22px;
+  -webkit-font-smoothing: antialiased;
+}
+button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 3px solid var(--kind); outline-offset: 2px; }
+.laden { padding: 40vh 0 0; text-align: center; color: var(--blei); }
+
+/* ── Gerüst ─────────────────────────────── */
+.app { max-width: 640px; margin: 0 auto; padding: 0 16px calc(84px + env(safe-area-inset-bottom, 0px)); }
+
+.kopf { display: flex; align-items: center; gap: 8px; padding: 14px 0 10px; }
+.kinder { display: flex; gap: 8px; flex: 1; }
+.kind-knopf {
+  border: 2px solid var(--linie); background: var(--blatt);
+  border-radius: 999px; padding: 6px 16px; font-weight: 700; color: var(--blei);
+}
+.kind-knopf.aktiv { border-color: var(--k); background: var(--k); color: #fff; }
+.klasse { font-weight: 400; opacity: .8; margin-left: 4px; font-size: 14px; }
+
+.unten {
+  position: fixed; left: 0; right: 0; bottom: 0;
+  display: flex; justify-content: center;
+  background: var(--blatt); border-top: 1px solid var(--linie);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+.unten button {
+  flex: 1; max-width: 160px; border: 0; background: none;
+  padding: 10px 0 12px; color: var(--blei); font-size: 13px;
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+}
+.unten button svg { width: 24px; height: 24px; }
+.unten button.aktiv { color: var(--kind); font-weight: 700; }
+
+h1 { font-size: 26px; line-height: 1.2; margin: 6px 0 4px; letter-spacing: -0.01em; }
+h2 { font-size: 19px; margin: 26px 0 8px; }
+.leise { color: var(--blei); }
+.klein { font-size: 14px; }
+
+/* ── Listen ─────────────────────────────── */
+.liste { background: var(--blatt); border: 1px solid var(--linie); border-radius: 10px; overflow: hidden; }
+.zeile {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 14px; border-top: 1px solid var(--linie);
+  width: 100%; text-align: left; background: none; border-left: 0; border-right: 0; border-bottom: 0;
+}
+.zeile:first-child { border-top: 0; }
+.zeile .haupt { flex: 1; min-width: 0; }
+.zeile .titel { font-weight: 700; }
+.zeile .sub { font-size: 14px; color: var(--blei); }
+.leer { padding: 22px 14px; color: var(--blei); text-align: center; }
+
+/* ── Heute: Stundenleiste ───────────────── */
+.stunden { position: relative; }
+.stunde {
+  display: grid; grid-template-columns: 58px 1fr; align-items: stretch;
+  border-top: 1px solid var(--linie); background: var(--blatt);
+}
+.stunde:first-child { border-top: 0; }
+.stunde .nr {
+  padding: 12px 0; text-align: center; font-size: 14px; color: var(--blei);
+  border-right: 3px solid var(--f, var(--linie));
+}
+.stunde .fach { padding: 12px 14px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+.stunde.pause .fach { font-weight: 400; color: var(--blei); font-style: italic; }
+.lsp {
+  font-size: 12px; font-weight: 700; border: 1.5px dashed currentColor; color: var(--blei);
+  border-radius: 4px; padding: 0 5px;
+}
+
+/* ── Woche ──────────────────────────────── */
+.woche { overflow-x: auto; }
+.woche table { border-collapse: separate; border-spacing: 3px; width: 100%; min-width: 330px; table-layout: fixed; }
+.woche th { font-size: 13px; color: var(--blei); font-weight: 700; padding: 4px 0; }
+.woche th.nr, .woche td.nr { width: 22px; font-size: 12px; color: var(--blei); text-align: center; font-weight: 400; }
+.woche td.z {
+  height: 42px; border-radius: 6px; text-align: center; font-size: 14px; font-weight: 700;
+  background: color-mix(in srgb, var(--f) 18%, var(--blatt));
+  color: var(--tinte); border: 1.5px solid transparent; padding: 0 2px;
+}
+.woche td.z.lsp-z { border: 1.5px dashed color-mix(in srgb, var(--f) 70%, var(--blatt)); background: var(--blatt); }
+.woche td.z.label { background: transparent; color: var(--blei); font-weight: 400; font-style: italic; font-size: 12px; }
+.woche td.z.heute-sp { box-shadow: inset 0 0 0 2px var(--kind); }
+.woche button.zelle { all: unset; display: block; width: 100%; height: 100%; cursor: pointer; }
+
+/* ── Noten ──────────────────────────────── */
+.note {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 44px; height: 32px; padding: 0 8px; border-radius: 7px;
+  font-weight: 700; color: #fff; background: var(--nf, var(--blei));
+  font-variant-numeric: tabular-nums;
+}
+.note.gross { min-width: 72px; height: 52px; font-size: 26px; border-radius: 10px; }
+.gewicht { font-size: 12px; font-weight: 700; color: var(--blei); border: 1px solid var(--linie); border-radius: 4px; padding: 0 4px; margin-left: 6px; }
+
+.fach-kopf { display: flex; align-items: center; gap: 12px; margin: 8px 0 14px; }
+.fach-kopf h1 { flex: 1; margin: 0; }
+.zurueck { border: 0; background: none; color: var(--kind); font-weight: 700; padding: 8px 0; }
+
+.reiter { display: flex; gap: 6px; margin-bottom: 12px; }
+.reiter button {
+  flex: 1; border: 1.5px solid var(--linie); background: var(--blatt);
+  border-radius: 8px; padding: 8px 4px; color: var(--blei); font-weight: 700; font-size: 15px;
+}
+.reiter button.aktiv { border-color: var(--kind); color: var(--kind); }
+
+.jahre { display: flex; gap: 6px; flex-wrap: wrap; margin: 4px 0 14px; }
+.jahre button { border: 1.5px solid var(--linie); background: var(--blatt); border-radius: 999px; padding: 4px 12px; font-size: 14px; color: var(--blei); }
+.jahre button.aktiv { border-color: var(--tinte); color: var(--tinte); font-weight: 700; }
+
+/* ── Knöpfe & Formulare ─────────────────── */
+.knopf {
+  border: 0; border-radius: 9px; padding: 12px 18px; font-weight: 700;
+  background: var(--kind); color: #fff; width: 100%;
+}
+.knopf:disabled { opacity: .55; }
+.knopf.zweit { background: var(--blatt); color: var(--tinte); border: 1.5px solid var(--linie); }
+.plus {
+  position: fixed; right: max(16px, calc(50% - 304px)); bottom: calc(76px + env(safe-area-inset-bottom, 0px));
+  width: 56px; height: 56px; border-radius: 50%; border: 0;
+  background: var(--kind); color: #fff; font-size: 30px; line-height: 1;
+  box-shadow: 0 4px 14px color-mix(in srgb, var(--kind) 40%, transparent);
+}
+.feld { display: block; margin-bottom: 14px; }
+.feld > span { display: block; font-size: 14px; font-weight: 700; color: var(--blei); margin-bottom: 5px; }
+.feld input, .feld select, .feld textarea {
+  width: 100%; border: 1.5px solid var(--linie); border-radius: 8px;
+  padding: 10px 12px; background: var(--blatt); font-size: 17px;
+}
+.wahl { display: flex; flex-wrap: wrap; gap: 6px; }
+.wahl button {
+  border: 1.5px solid var(--linie); background: var(--blatt); border-radius: 8px;
+  padding: 7px 12px; font-size: 15px;
+}
+.wahl button.aktiv { border-color: var(--kind); background: var(--kind); color: #fff; font-weight: 700; }
+.wahl.ziffern button { width: 46px; padding: 9px 0; font-weight: 700; font-size: 18px; }
+.fehler { color: var(--rot); font-size: 15px; margin: 8px 0; }
+.check { width: 24px; height: 24px; accent-color: var(--kind); flex-shrink: 0; }
+.erledigt .titel { text-decoration: line-through; color: var(--blei); }
+.faellig-rot { color: var(--rot); font-weight: 700; }
+.loeschen { border: 0; background: none; color: var(--blei); font-size: 20px; padding: 4px 6px; }
+
+/* ── Bottom-Sheet ───────────────────────── */
+.schleier { position: fixed; inset: 0; background: rgba(10, 16, 28, .45); z-index: 20; display: flex; align-items: flex-end; justify-content: center; }
+.sheet {
+  background: var(--papier); width: 100%; max-width: 640px; max-height: 92vh; overflow-y: auto;
+  border-radius: 16px 16px 0 0; padding: 18px 16px calc(18px + env(safe-area-inset-bottom, 0px));
+  animation: hoch .18s ease-out;
+}
+.sheet h2 { margin-top: 0; }
+.sheet .aktionen { display: flex; gap: 8px; margin-top: 8px; }
+@keyframes hoch { from { transform: translateY(40px); opacity: 0; } to { transform: none; opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .sheet { animation: none; } }
+
+/* ── Login ──────────────────────────────── */
+.login { max-width: 420px; margin: 0 auto; padding: 14vh 20px 40px; }
+.login h1 { font-size: 34px; }
+.login p { color: var(--blei); }
+.code-eingabe { letter-spacing: .3em; font-size: 26px !important; text-align: center; font-variant-numeric: tabular-nums; }
+
+.hinweis {
+  background: var(--blatt); border: 1px solid var(--linie); border-left: 4px solid var(--kind);
+  border-radius: 8px; padding: 10px 12px; margin: 6px 0 12px; font-size: 15px;
+  display: flex; gap: 10px; align-items: flex-start;
+}
+.hinweis button { border: 0; background: none; color: var(--blei); font-size: 18px; margin-left: auto; padding: 0 4px; }
+.fuss { margin: 34px 0 10px; text-align: center; }
+.fuss button { border: 0; background: none; color: var(--blei); text-decoration: underline; }
