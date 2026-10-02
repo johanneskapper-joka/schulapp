@@ -205,3 +205,25 @@ h2 { font-size: 19px; margin: 26px 0 8px; }
 .hinweis button { border: 0; background: none; color: var(--blei); font-size: 18px; margin-left: auto; padding: 0 4px; }
 .fuss { margin: 34px 0 10px; text-align: center; }
 .fuss button { border: 0; background: none; color: var(--blei); text-decoration: underline; }
+
+/* ── Termine ────────────────────────────── */
+.zeile:disabled { opacity: 1; cursor: default; color: inherit; }
+.termin .balken { width: 4px; align-self: stretch; border-radius: 2px; background: var(--f); flex-shrink: 0; }
+.stern { color: var(--stern); }
+.vergangen { opacity: .7; }
+.filter button.aktiv { border-color: var(--k); color: var(--k); }
+.schalter { border: 1px solid var(--linie); border-radius: 10px; background: var(--blatt); margin-bottom: 8px; }
+.monat-kopf { display: flex; align-items: center; justify-content: space-between; margin: 4px 0 8px; font-size: 18px; }
+.monat-kopf button { border: 1.5px solid var(--linie); background: var(--blatt); border-radius: 8px; width: 40px; height: 36px; font-size: 20px; }
+.kal { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+.kal .wt { text-align: center; font-size: 13px; color: var(--blei); font-weight: 700; padding-bottom: 2px; }
+.kal .tag {
+  aspect-ratio: 1 / 1.05; border: 1px solid var(--linie); background: var(--blatt); border-radius: 8px;
+  display: flex; flex-direction: column; align-items: center; padding: 5px 0 0; font-size: 15px;
+}
+.kal .tag.wochenende { background: transparent; color: var(--blei); }
+.kal .tag.heute { color: var(--kind); font-weight: 700; }
+.kal .tag.gewaehlt { border: 2px solid var(--kind); }
+.kal .punkte { display: flex; gap: 3px; margin-top: auto; margin-bottom: 6px; min-height: 8px; }
+.kal .punkt { width: 8px; height: 8px; border-radius: 50%; background: var(--f); }
+.kal .punkt.wichtig { box-shadow: 0 0 0 2px var(--stern); }

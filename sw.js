@@ -1,5 +1,5 @@
 // Schulapp – Service Worker (Offline-Grundgerüst; Push folgt in Phase 4)
-const CACHE = 'schulapp-v1';
+const CACHE = 'schulapp-v2';
 const DATEIEN = ['./', './index.html', './app.js', './style.css', './manifest.webmanifest',
   './icon-192.png', './icon-512.png', './apple-touch-icon.png'];
 
