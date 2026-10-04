@@ -85,7 +85,7 @@ h2 { font-size: 19px; margin: 26px 0 8px; }
 }
 .zeile:first-child { border-top: 0; }
 .zeile .haupt { flex: 1; min-width: 0; }
-.zeile .titel { font-weight: 700; }
+.zeile .titel { font-weight: 700; overflow-wrap: anywhere; hyphens: auto; }
 .zeile .sub { font-size: 14px; color: var(--blei); }
 .leer { padding: 22px 14px; color: var(--blei); text-align: center; }
 
@@ -162,7 +162,7 @@ h2 { font-size: 19px; margin: 26px 0 8px; }
 }
 .feld { display: block; margin-bottom: 14px; }
 .feld > span { display: block; font-size: 14px; font-weight: 700; color: var(--blei); margin-bottom: 5px; }
-.feld input, .feld select, .feld textarea {
+.feld > input, .feld > select, .feld > textarea {
   width: 100%; border: 1.5px solid var(--linie); border-radius: 8px;
   padding: 10px 12px; background: var(--blatt); font-size: 17px;
 }
@@ -227,3 +227,28 @@ h2 { font-size: 19px; margin: 26px 0 8px; }
 .kal .punkte { display: flex; gap: 3px; margin-top: auto; margin-bottom: 6px; min-height: 8px; }
 .kal .punkt { width: 8px; height: 8px; border-radius: 50%; background: var(--f); }
 .kal .punkt.wichtig { box-shadow: 0 0 0 2px var(--stern); }
+
+/* ── Einrichtung ────────────────────────── */
+.kopf .zahnrad {
+  border: 1.5px solid var(--linie); background: var(--blatt); color: var(--blei);
+  width: 42px; height: 42px; border-radius: 50%; display: grid; place-items: center; flex-shrink: 0;
+}
+.kopf .zahnrad svg { width: 22px; height: 22px; }
+.kopf .zahnrad.aktiv { color: var(--kind); border-color: var(--kind); }
+.farbpunkt { width: 14px; height: 14px; border-radius: 50%; background: var(--f); flex-shrink: 0; }
+.zeile.hinzu { color: var(--kind); font-weight: 700; justify-content: center; }
+.mini {
+  border: 1.5px solid var(--linie); background: var(--blatt); border-radius: 7px;
+  width: 36px; height: 34px; font-size: 16px; color: var(--tinte); flex-shrink: 0;
+}
+.mini:disabled { opacity: .35; }
+.farbwahl { display: flex; flex-wrap: wrap; gap: 10px; }
+.farbwahl button { width: 40px; height: 40px; border-radius: 50%; border: 3px solid var(--blatt); background: var(--f); box-shadow: 0 0 0 1.5px var(--linie); }
+.farbwahl button.aktiv { box-shadow: 0 0 0 3px var(--f); }
+.editor td.z.frei { background: transparent; border: 1.5px dashed var(--linie); color: var(--blei); font-weight: 400; }
+.wahl.ziffern.punkte { display: grid; grid-template-columns: repeat(8, 1fr); }
+.wahl.ziffern.punkte button { width: auto; }
+.wechsel-zeile { align-items: center; }
+.wechsel-zeile .skala { margin-top: 4px; border: 1.5px solid var(--linie); border-radius: 7px; background: var(--blatt); padding: 4px 6px; font-size: 14px; }
+.klasse-feld { width: 84px; border: 1.5px solid var(--linie); border-radius: 8px; padding: 8px 10px; background: var(--blatt); font-size: 17px; }
+input:disabled, select:disabled { opacity: .5; }

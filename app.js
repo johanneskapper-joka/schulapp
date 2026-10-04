@@ -14,11 +14,15 @@ const NOTEN_ARTEN = ['Klassenarbeit', 'Test', 'Vokabeltest', 'Mündlich', 'Präs
 const AUFGABEN_ARTEN = ['Aufgabe', 'Lernen', 'Vorbereitung', 'Mitbringen'];
 const TERMIN_ARTEN = ['Klassenarbeit', 'Test', 'Vokabeltest', 'Referat', 'Elternabend', 'Ausflug', 'Ferien', 'Sonstige'];
 const BEIDE = '#7C5CBF';
+const KINDFARBEN = ['#2563eb', '#059669', '#D9822B', '#B54FA6', '#C23B3B', '#1E9BB0', '#6C5CE7', '#8A6D3B'];
+const STANDARD_FAECHER = ['Deutsch', 'Mathe', 'Englisch', 'Französisch', 'Latein', 'Spanisch', 'Biologie', 'Chemie', 'Physik',
+  'Geschichte', 'Erdkunde', 'Gemeinschaftskunde', 'Wirtschaft', 'Informatik', 'NwT', 'BNT', 'Ethik', 'Religion',
+  'Musik', 'Bildende Kunst', 'Sport', 'AG'];
 const KUERZEL = {
   Deutsch: 'De', Mathe: 'Ma', Englisch: 'En', Latein: 'La', Geschichte: 'Ge', Erdkunde: 'Ek',
   Chemie: 'Ch', Physik: 'Ph', Gemeinschaftskunde: 'Gk', Ethik: 'Et', Kunst: 'Ku', 'Bildende Kunst': 'BK',
   Musik: 'Mu', Sport: 'Sp', Biologie: 'Bio', Medienbildung: 'Med', Soko: 'Soko', AG: 'AG',
-  Informatik: 'Inf', Sachkunde: 'Sk',
+  Informatik: 'Inf', Sachkunde: 'Sk', 'Französisch': 'F', Spanisch: 'Spa', Religion: 'Rel', Wirtschaft: 'Wi', NwT: 'NwT', BNT: 'BNT',
 };
 const FACHFARBEN = ['#3B6FD8', '#D9822B', '#2E9E6A', '#B54FA6', '#C23B3B', '#1E9BB0', '#8A6D3B', '#6C5CE7', '#5E8C31', '#D35F8D', '#4A6A8A', '#B08900', '#7A7A7A'];
 
@@ -28,6 +32,17 @@ const datum = (iso) => iso ? new Date(iso + 'T00:00').toLocaleDateString('de-DE'
 const schnitt = (v) => v == null ? '–' : Number(v).toFixed(1).replace('.', ',');
 const noteText = (label, value) => (label || String(value)).replace(/(\d)-(\d)/, '$1–$2').replace(/-$/, '−');
 const notenFarbe = (v) => v == null ? 'var(--blei)' : v <= 1.5 ? '#1F8A4C' : v <= 2.5 ? '#5C9A2E' : v <= 3.5 ? '#C28A00' : v <= 4.5 ? '#D2691E' : '#C8323C';
+const notenFarbeSkala = (v, punkte) => !punkte ? notenFarbe(v) : v == null ? 'var(--blei)'
+  : v >= 13 ? '#1F8A4C' : v >= 10 ? '#5C9A2E' : v >= 7 ? '#C28A00' : v >= 4 ? '#D2691E' : '#C8323C';
+const istPunkte = (enr) => enr?.grade_scale === 'punkte';
+const alleLabel = (kinder) => (kinder.length === 2 ? 'Beide' : 'Alle');
+const naechsteKlasse = (k) => (k || '').replace(/^(\d+)/, (m) => String(+m + 1));
+const naechstesJahr = (label) => {
+  const m = /^(\d{4})\/(\d{2})$/.exec(label || '');
+  if (m) return `${+m[1] + 1}/${String((+m[2] + 1) % 100).padStart(2, '0')}`;
+  const d = new Date(); const y = d.getMonth() >= 6 ? d.getFullYear() : d.getFullYear() - 1;
+  return `${y}/${String((y + 1) % 100).padStart(2, '0')}`;
+};
 const kuerzel = (name) => KUERZEL[name] || (name || '').slice(0, 3);
 const merken = (k, v) => { try { localStorage.setItem(k, v); } catch {} };
 const lesen = (k) => { try { return localStorage.getItem(k); } catch { return null; } };
@@ -53,6 +68,7 @@ const Icon = {
   heute: html`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/><circle cx="12" cy="15" r="2"/></svg>`,
   woche: html`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M3 14h18M9 4v16M15 4v16"/></svg>`,
   termine: html`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.4 6.8 19.1l1-5.8L3.5 9.2l5.9-.9z"/></svg>`,
+  zahnrad: html`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>`,
   faecher: html`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 5a2 2 0 0 1 2-2h12v18H6a2 2 0 0 1-2-2z"/><path d="M8 7h6M8 11h6"/></svg>`,
 };
 
@@ -222,8 +238,8 @@ function Haupt({ session }) {
   const [ansicht, setAnsicht] = useState('heute');
   const [fachId, setFachId] = useState(null);
 
-  useEffect(() => {
-    (async () => {
+  const basisLaden = useCallback(async () => {
+    {
       const [m, s, y] = await Promise.all([
         sb.from('family_members').select('*').eq('user_id', session.user.id),
         sb.from('students').select('*').order('sort'),
@@ -235,8 +251,9 @@ function Haupt({ session }) {
       setBasis({ mitglied: m.data[0], kinder: s.data, jahre: y.data, aktuellId: aktuell?.id });
       setJahrId(aktuell?.id);
       setKindId((k) => (s.data.some((x) => x.id === k) ? k : s.data[0]?.id));
-    })();
+    }
   }, []);
+  useEffect(() => { basisLaden(); }, [basisLaden]);
 
   const jahrFuerAnsicht = ansicht === 'faecher' ? jahrId : basis?.aktuellId;
   const [daten, neuLaden] = useJahresdaten(kindId, jahrFuerAnsicht);
@@ -247,39 +264,50 @@ function Haupt({ session }) {
     <button class="knopf zweit" onClick=${() => sb.auth.signOut()}>Abmelden</button></div>`;
   if (!basis) return html`<div class="laden">Lädt …</div>`;
 
-  const kind = basis.kinder.find((k) => k.id === kindId) || basis.kinder[0];
+  const kind = basis.kinder.find((k) => k.id === kindId) || basis.kinder[0] || null;
   const istEltern = basis.mitglied.role === 'parent';
+  const ersteinrichtung = !kind || !basis.aktuellId;
+  const sicht = ersteinrichtung ? 'einrichtung' : ansicht;
+  const aktualisieren = async () => { await basisLaden(); neuLaden(); termineNeu(); };
+
+  if (ersteinrichtung && !istEltern) return html`<div class="login"><h1>Schulapp</h1>
+    <p>Deine Eltern richten die App gerade ein. Schau bald wieder vorbei.</p>
+    <button class="knopf zweit" onClick=${() => sb.auth.signOut()}>Abmelden</button></div>`;
   const fach = daten?.faecher?.find((f) => f.id === fachId);
 
   const kindWechseln = (id) => { setKindId(id); merken('kind', id); setFachId(null); };
   const ansichtWechseln = (a) => { setAnsicht(a); setFachId(null); if (a !== 'faecher') setJahrId(basis.aktuellId); };
 
   return html`
-    <div class="app" style=${`--kind:${ansicht === 'termine' ? BEIDE : kind.color}`}>
+    <div class="app" style=${`--kind:${sicht === 'termine' || !kind ? BEIDE : kind.color}`}>
       <header class="kopf">
-        ${ansicht === 'termine' ? html`<h1 style="margin:0">Termine</h1>` : html`<div class="kinder">
+        ${sicht === 'termine' ? html`<h1 style="margin:0;flex:1">Termine</h1>` : html`<div class="kinder">
           ${basis.kinder.map((k) => html`
-            <button class=${'kind-knopf' + (k.id === kind.id ? ' aktiv' : '')} style=${`--k:${k.color}`}
-              onClick=${() => kindWechseln(k.id)} aria-pressed=${k.id === kind.id}>${k.name}
-              ${k.id === kind.id && daten?.enrollment?.class_name && html`<span class="klasse">${daten.enrollment.class_name}</span>`}
+            <button class=${'kind-knopf' + (k.id === kind?.id ? ' aktiv' : '')} style=${`--k:${k.color}`}
+              onClick=${() => kindWechseln(k.id)} aria-pressed=${k.id === kind?.id}>${k.name}
+              ${k.id === kind?.id && daten?.enrollment?.class_name && html`<span class="klasse">${daten.enrollment.class_name}</span>`}
             </button>`)}
         </div>`}
+        ${istEltern && !ersteinrichtung && html`<button class=${'zahnrad' + (sicht === 'einrichtung' ? ' aktiv' : '')} aria-label="Einrichtung"
+          onClick=${() => ansichtWechseln(sicht === 'einrichtung' ? 'heute' : 'einrichtung')}>${Icon.zahnrad}</button>`}
       </header>
 
       <${InstallHinweis} />
 
-      ${ansicht === 'termine' ? html`<${Termine} termine=${termine} kinder=${basis.kinder} istEltern=${istEltern}
+      ${sicht === 'einrichtung' ? html`<${Einrichtung} basis=${basis} kind=${kind} daten=${daten} aktualisieren=${aktualisieren}
+            ersteinrichtung=${ersteinrichtung} email=${session.user.email} />`
+        : sicht === 'termine' ? html`<${Termine} termine=${termine} kinder=${basis.kinder} istEltern=${istEltern}
             familyId=${basis.mitglied.family_id} aktuellId=${basis.aktuellId} faecher=${aktuelleFaecher} neuLaden=${termineNeu} />`
         : !daten ? html`<div class="laden" style="padding-top:20vh">Lädt …</div>`
         : daten.fehler ? html`<p class="fehler">Laden fehlgeschlagen. Bitte später erneut öffnen.</p>`
         : fach ? html`<${FachDetail} fach=${fach} daten=${daten} istEltern=${istEltern} onZurueck=${() => setFachId(null)} neuLaden=${neuLaden} />`
-        : ansicht === 'heute' ? html`<${Heute} kind=${kind} kinder=${basis.kinder} daten=${daten} termine=${termine} neuLaden=${neuLaden} onTermine=${() => ansichtWechseln('termine')} onFach=${(id) => { setAnsicht('faecher'); setFachId(id); }} />`
-        : ansicht === 'woche' ? html`<${Woche} daten=${daten} onFach=${(id) => { setAnsicht('faecher'); setFachId(id); }} />`
+        : sicht === 'heute' ? html`<${Heute} kind=${kind} kinder=${basis.kinder} daten=${daten} termine=${termine} neuLaden=${neuLaden} onTermine=${() => ansichtWechseln('termine')} onFach=${(id) => { setAnsicht('faecher'); setFachId(id); }} />`
+        : sicht === 'woche' ? html`<${Woche} daten=${daten} onFach=${(id) => { setAnsicht('faecher'); setFachId(id); }} />`
         : html`<${Faecher} daten=${daten} jahre=${basis.jahre} jahrId=${jahrId} aktuellId=${basis.aktuellId} setJahrId=${setJahrId} onFach=${setFachId} email=${session.user.email} />`}
 
       <nav class="unten" aria-label="Hauptnavigation">
-        ${[['heute', 'Heute'], ['woche', 'Woche'], ['termine', 'Termine'], ['faecher', 'Fächer']].map(([id, name]) => html`
-          <button class=${ansicht === id ? 'aktiv' : ''} onClick=${() => ansichtWechseln(id)} aria-current=${ansicht === id ? 'page' : null}>
+        ${!ersteinrichtung && [['heute', 'Heute'], ['woche', 'Woche'], ['termine', 'Termine'], ['faecher', 'Fächer']].map(([id, name]) => html`
+          <button class=${sicht === id ? 'aktiv' : ''} onClick=${() => ansichtWechseln(id)} aria-current=${sicht === id ? 'page' : null}>
             ${Icon[id]}<span>${name}</span>
           </button>`)}
       </nav>
@@ -392,11 +420,11 @@ function Faecher({ daten, jahre, jahrId, aktuellId, setJahrId, onFach, email }) 
           return html`<button class="zeile" onClick=${() => onFach(f.id)}>
             <div class="haupt"><div class="titel">${f.name}</div>
               <div class="sub">${s?.grade_count ? `${s.grade_count} ${s.grade_count === 1 ? 'Note' : 'Noten'}` : 'noch keine Noten'}</div></div>
-            ${s?.average != null && html`<span class="note" style=${`--nf:${notenFarbe(s.average)}`}>${schnitt(s.average)}</span>`}
+            ${s?.average != null && html`<span class="note" style=${`--nf:${notenFarbeSkala(s.average, istPunkte(daten.enrollment))}`}>${schnitt(s.average)}</span>`}
           </button>`;
         })}
       </div>
-      <p class="leise klein">Schnitt: Klassenarbeiten zählen doppelt.</p>`}
+      <p class="leise klein">${istPunkte(daten.enrollment) ? 'Punkte 0–15. ' : ''}Schnitt: Klassenarbeiten zählen doppelt.</p>`}
     <div class="fuss"><span class="leise klein">Angemeldet als ${email}</span><br />
       <button onClick=${() => sb.auth.signOut()}>Abmelden</button></div>`;
 }
@@ -409,6 +437,8 @@ function FachDetail({ fach, daten, istEltern, onZurueck, neuLaden }) {
   const [formular, setFormular] = useState(null);
   const [tick, setTick] = useState(0);
   const schnittWert = daten.schnitte[fach.id]?.average;
+  const punkte = istPunkte(daten.enrollment);
+  const nf = (v) => notenFarbeSkala(v, punkte);
   const aufgaben = daten.aufgaben.filter((a) => a.subject_id === fach.id);
 
   useEffect(() => {
@@ -435,7 +465,7 @@ function FachDetail({ fach, daten, istEltern, onZurueck, neuLaden }) {
     <button class="zurueck" onClick=${onZurueck}>‹ Zurück</button>
     <div class="fach-kopf">
       <h1>${fach.name}</h1>
-      <span class="note gross" style=${`--nf:${notenFarbe(schnittWert)}`} aria-label="Schnitt">${schnitt(schnittWert)}</span>
+      <span class="note gross" style=${`--nf:${nf(schnittWert)}`} aria-label="Schnitt">${schnitt(schnittWert)}</span>
     </div>
 
     <div class="reiter" role="tablist">
@@ -449,7 +479,7 @@ function FachDetail({ fach, daten, istEltern, onZurueck, neuLaden }) {
           : noten.length === 0 ? html`<div class="leer">Noch keine Noten.${istEltern ? ' Mit + die erste eintragen.' : ''}</div>`
           : noten.map((n) => html`
             <div class="zeile">
-              <span class="note" style=${`--nf:${notenFarbe(n.value)}`}>${noteText(n.label, n.value)}</span>
+              <span class="note" style=${`--nf:${nf(n.value)}`}>${noteText(n.label, n.value)}</span>
               <div class="haupt">
                 <div class="titel">${n.kind}${Number(n.weight) === 2 && html`<span class="gewicht">×2</span>`}</div>
                 <div class="sub">${[datum(n.graded_on), n.note].filter(Boolean).join(', ')}</div>
@@ -475,7 +505,7 @@ function FachDetail({ fach, daten, istEltern, onZurueck, neuLaden }) {
 
     ${darfHinzufuegen && html`<button class="plus" aria-label="Hinzufügen" onClick=${() => setFormular(reiter)}>+</button>`}
 
-    ${formular === 'noten' && html`<${NotenFormular} fach=${fach} onFertig=${fertig} onAbbrechen=${() => setFormular(null)} />`}
+    ${formular === 'noten' && html`<${NotenFormular} fach=${fach} punkte=${punkte} onFertig=${fertig} onAbbrechen=${() => setFormular(null)} />`}
     ${formular === 'themen' && html`<${ThemaFormular} fach=${fach} onFertig=${fertig} onAbbrechen=${() => setFormular(null)} />`}
     ${formular === 'aufgaben' && html`<${AufgabeFormular} fach=${fach} enrollmentId=${daten.enrollment.id} onFertig=${fertig} onAbbrechen=${() => setFormular(null)} />`}`;
 }
@@ -490,7 +520,7 @@ function TerminZeile({ t, kinder, faecherById, onClick }) {
     <span class="balken"></span>
     <div class="haupt">
       <div class="titel">${t.important && html`<span class="stern" aria-label="wichtig">★ </span>`}${t.title}</div>
-      <div class="sub"><span class=${n >= 0 && n <= 1 ? 'faellig-rot' : ''}>${wann}</span>, ${[kind ? kind.name : 'Beide', f?.name, t.kind !== 'Sonstige' ? t.kind : null].filter((x) => x && (x === (kind ? kind.name : 'Beide') || !t.title.includes(x))).join(', ')}</div>
+      <div class="sub"><span class=${n >= 0 && n <= 1 ? 'faellig-rot' : ''}>${wann}</span>, ${[kind ? kind.name : alleLabel(kinder), f?.name, t.kind !== 'Sonstige' ? t.kind : null].filter((x, i) => x && (i === 0 || !t.title.includes(x))).join(', ')}</div>
       ${t.note && html`<div class="sub">${t.note}</div>`}
     </div>
   </button>`;
@@ -602,7 +632,7 @@ function TerminFormular({ termin, datumVorgabe, kinder, faecher, familyId, aktue
         ${kinder.map((k) => html`<button type="button" class=${fuer === k.id ? 'aktiv' : ''} style=${fuer === k.id ? `background:${k.color};border-color:${k.color}` : ''}
           onClick=${() => { setFuer(k.id); setFachId(''); }}>${k.name}</button>`)}
         <button type="button" class=${fuer === 'beide' ? 'aktiv' : ''} style=${fuer === 'beide' ? `background:${BEIDE};border-color:${BEIDE}` : ''}
-          onClick=${() => { setFuer('beide'); setFachId(''); }}>Beide</button>
+          onClick=${() => { setFuer('beide'); setFachId(''); }}>${alleLabel(kinder)}</button>
       </div>
     </div>
     <div class="feld"><span>Art</span>
@@ -629,6 +659,316 @@ function TerminFormular({ termin, datumVorgabe, kinder, faecher, familyId, aktue
         : sb.from('events').insert(zeile()))}>${busy ? 'Speichert …' : 'Termin speichern'}</button>
     </div>
     ${termin && html`<div class="fuss"><button style="color:var(--rot)" onClick=${loeschen}>Termin löschen</button></div>`}
+  <//>`;
+}
+
+// ── Einrichtung ───────────────────────────────────────────────────────
+function Einrichtung({ basis, kind, daten, aktualisieren, ersteinrichtung, email }) {
+  const [sheet, setSheet] = useState(null);
+  const aktuell = basis.jahre.find((j) => j.id === basis.aktuellId);
+  const enr = daten?.enrollment;
+  const faecher = daten?.faecher || [];
+  const fertig = async () => { setSheet(null); await aktualisieren(); };
+
+  async function klasseAnlegen() {
+    const { error } = await sb.from('enrollments').insert({ student_id: kind.id, school_year_id: aktuell.id, class_name: null });
+    if (error) alert('Anlegen fehlgeschlagen: ' + error.message);
+    await aktualisieren();
+    setSheet({ typ: 'klasse' });
+  }
+
+  async function verschieben(i, d) {
+    const a = faecher[i]; const b = faecher[i + d];
+    await Promise.all([
+      ...faecher.map((f, idx) => (f.sort !== idx + 1 && f !== a && f !== b) ? sb.from('subjects').update({ sort: idx + 1 }).eq('id', f.id) : null).filter(Boolean),
+      sb.from('subjects').update({ sort: i + d + 1 }).eq('id', a.id),
+      sb.from('subjects').update({ sort: i + 1 }).eq('id', b.id),
+    ]);
+    aktualisieren();
+  }
+
+  return html`
+    <h1>${ersteinrichtung ? 'Willkommen!' : 'Einrichtung'}</h1>
+    ${ersteinrichtung && html`<p class="leise">Lege zuerst eure Kinder an, dann das aktuelle Schuljahr. Danach kommen Fächer und Stundenplan.</p>`}
+
+    <h2>Kinder</h2>
+    <div class="liste">
+      ${basis.kinder.map((k) => html`
+        <button class="zeile" onClick=${() => setSheet({ typ: 'kind', kind: k })}>
+          <span class="farbpunkt" style=${`--f:${k.color}`}></span>
+          <div class="haupt"><div class="titel">${k.name}</div></div>
+          <span class="leise klein">Bearbeiten</span>
+        </button>`)}
+      <button class="zeile hinzu" onClick=${() => setSheet({ typ: 'kind' })}>+ Kind hinzufügen</button>
+    </div>
+
+    ${!aktuell ? html`
+      <h2>Schuljahr</h2>
+      <div class="liste"><div class="leer">Noch kein Schuljahr angelegt.</div></div>
+      <div style="margin-top:12px">
+        <button class="knopf" disabled=${!basis.kinder.length} onClick=${() => setSheet({ typ: 'wechsel' })}>Erstes Schuljahr anlegen</button>
+        ${!basis.kinder.length && html`<p class="leise klein">Zuerst mindestens ein Kind hinzufügen.</p>`}
+      </div>`
+    : kind && html`
+      <h2>Schuljahr ${aktuell.label} · ${kind.name}</h2>
+      ${!daten ? html`<div class="leer">Lädt …</div>` : !enr ? html`
+        <div class="liste"><div class="leer">${kind.name} ist für ${aktuell.label} noch nicht angelegt.</div></div>
+        <div style="margin-top:12px"><button class="knopf" onClick=${klasseAnlegen}>${kind.name} für ${aktuell.label} anlegen</button></div>` : html`
+        <div class="liste">
+          <button class="zeile" onClick=${() => setSheet({ typ: 'klasse' })}>
+            <div class="haupt"><div class="titel">Klasse ${enr.class_name || '–'}</div>
+              <div class="sub">${istPunkte(enr) ? 'Punkte 0–15 (Oberstufe)' : 'Noten 1–6'}</div></div>
+            <span class="leise klein">Ändern</span>
+          </button>
+        </div>
+        <p class="leise klein">Mit den Knöpfen oben wählst du, für welches Kind du Fächer und Stundenplan bearbeitest.</p>
+
+        <h2>Fächer</h2>
+        <div class="liste">
+          ${faecher.map((f, i) => html`
+            <div class="zeile">
+              <span class="farbpunkt" style=${`--f:${f.farbe}`}></span>
+              <div class="haupt"><div class="titel">${f.name}</div></div>
+              <button class="mini" disabled=${i === 0} onClick=${() => verschieben(i, -1)} aria-label=${`${f.name} nach oben`}>↑</button>
+              <button class="mini" disabled=${i === faecher.length - 1} onClick=${() => verschieben(i, 1)} aria-label=${`${f.name} nach unten`}>↓</button>
+              <button class="mini" onClick=${() => setSheet({ typ: 'fach', fach: f })} aria-label=${`${f.name} bearbeiten`}>✎</button>
+            </div>`)}
+          <button class="zeile hinzu" onClick=${() => setSheet({ typ: 'fach' })}>+ Fächer hinzufügen</button>
+        </div>
+
+        <h2>Stundenplan</h2>
+        ${faecher.length === 0 ? html`<p class="leise">Lege zuerst Fächer an.</p>`
+          : html`<${StundenplanEditor} daten=${daten} onZelle=${(tag, std, slot) => setSheet({ typ: 'stunde', tag, std, slot })} />`}
+      `}
+
+      <h2>Neues Schuljahr</h2>
+      <p class="leise klein">Legt ${naechstesJahr(aktuell.label)} an, übernimmt die Fächer und stellt ${aktuell.label} ins Archiv. Noten, Themen und Termine bleiben dort erhalten.</p>
+      <button class="knopf zweit" onClick=${() => setSheet({ typ: 'wechsel' })}>Schuljahreswechsel starten</button>`}
+
+    <div class="fuss"><span class="leise klein">Angemeldet als ${email}</span><br />
+      <button onClick=${() => sb.auth.signOut()}>Abmelden</button></div>
+
+    ${sheet?.typ === 'kind' && html`<${KindFormular} k=${sheet.kind} familyId=${basis.mitglied.family_id} anzahl=${basis.kinder.length} onFertig=${fertig} onAbbrechen=${() => setSheet(null)} />`}
+    ${sheet?.typ === 'klasse' && enr && html`<${KlasseFormular} enr=${enr} kind=${kind} onFertig=${fertig} onAbbrechen=${() => setSheet(null)} />`}
+    ${sheet?.typ === 'fach' && html`<${FachFormular} fach=${sheet.fach} enr=${enr} faecher=${faecher} schnitte=${daten?.schnitte || {}} onFertig=${fertig} onAbbrechen=${() => setSheet(null)} />`}
+    ${sheet?.typ === 'stunde' && html`<${StundeFormular} ...${sheet} enr=${enr} faecher=${faecher} stunden=${daten.stunden} onFertig=${fertig} onAbbrechen=${() => setSheet(null)} />`}
+    ${sheet?.typ === 'wechsel' && html`<${WechselFormular} basis=${basis} aktuell=${aktuell} onFertig=${fertig} onAbbrechen=${() => setSheet(null)} />`}`;
+}
+
+function StundenplanEditor({ daten, onZelle }) {
+  const maxStunde = Math.max(0, ...daten.stunden.map((s) => s.period));
+  const [zeilen, setZeilen] = useState(Math.max(6, maxStunde));
+  const faecherById = Object.fromEntries(daten.faecher.map((f) => [f.id, f]));
+  const zelle = (t, p) => daten.stunden.find((s) => s.weekday === t && s.period === p);
+  return html`
+    <div class="woche editor">
+      <table>
+        <thead><tr><th class="nr"></th>${TAGE_KURZ.map((t) => html`<th>${t}</th>`)}</tr></thead>
+        <tbody>
+          ${Array.from({ length: Math.max(zeilen, maxStunde) }, (_, i) => i + 1).map((p) => html`
+            <tr><td class="nr">${p}</td>
+              ${[1, 2, 3, 4, 5].map((t) => {
+                const s = zelle(t, p);
+                const f = s && faecherById[s.subject_id];
+                const cls = 'z' + (!s ? ' frei' : '') + (s?.is_lsp ? ' lsp-z' : '') + (s && !f ? ' label' : '');
+                return html`<td class=${cls} style=${f ? `--f:${f.farbe}` : ''}>
+                  <button class="zelle" onClick=${() => onZelle(t, p, s)} aria-label=${`${TAGE[t - 1]}, ${p}. Stunde: ${f ? f.name : s?.label || 'frei'}`}>
+                    ${f ? kuerzel(f.name) : s ? (s.label || '').replace('LSP ', '') : '+'}
+                  </button></td>`;
+              })}
+            </tr>`)}
+        </tbody>
+      </table>
+    </div>
+    ${zeilen < 12 && html`<div class="fuss" style="margin:8px 0 0"><button onClick=${() => setZeilen(Math.max(zeilen, maxStunde) + 1)}>+ weitere Stunde</button></div>`}
+    <p class="leise klein">Tippe auf ein Feld, um es zu belegen oder zu ändern.</p>`;
+}
+
+function KindFormular({ k, familyId, anzahl, onFertig, onAbbrechen }) {
+  const [name, setName] = useState(k?.name || '');
+  const [farbe, setFarbe] = useState(k?.color || KINDFARBEN[anzahl % KINDFARBEN.length]);
+  const { busy, fehler, speichern } = useSpeichern(onFertig);
+  return html`<${Sheet} titel=${k ? `${k.name} bearbeiten` : 'Kind hinzufügen'} onAbbrechen=${onAbbrechen}>
+    <label class="feld"><span>Vorname</span><input value=${name} onInput=${(e) => setName(e.target.value)} autocomplete="off" /></label>
+    <div class="feld"><span>Farbe</span>
+      <div class="farbwahl">${KINDFARBEN.map((c) => html`<button type="button" class=${farbe === c ? 'aktiv' : ''} style=${`--f:${c}`}
+        onClick=${() => setFarbe(c)} aria-label=${`Farbe ${c}`} aria-pressed=${farbe === c}></button>`)}</div>
+    </div>
+    ${fehler && html`<div class="fehler">${fehler}</div>`}
+    <div class="aktionen">
+      <button class="knopf zweit" onClick=${onAbbrechen}>Abbrechen</button>
+      <button class="knopf" style=${`background:${farbe}`} disabled=${busy || !name.trim()} onClick=${() => speichern(() => k
+        ? sb.from('students').update({ name: name.trim(), color: farbe }).eq('id', k.id)
+        : sb.from('students').insert({ family_id: familyId, name: name.trim(), color: farbe, sort: anzahl + 1 }))}>Speichern</button>
+    </div>
+  <//>`;
+}
+
+function KlasseFormular({ enr, kind, onFertig, onAbbrechen }) {
+  const [klasse, setKlasse] = useState(enr.class_name || '');
+  const [skala, setSkala] = useState(enr.grade_scale || 'noten');
+  const { busy, fehler, speichern } = useSpeichern(onFertig);
+  return html`<${Sheet} titel=${`Klasse von ${kind.name}`} onAbbrechen=${onAbbrechen}>
+    <label class="feld"><span>Klasse</span><input value=${klasse} onInput=${(e) => setKlasse(e.target.value)} placeholder="z. B. 6b" /></label>
+    <div class="feld"><span>Notensystem</span>
+      <div class="wahl">
+        <button type="button" class=${skala === 'noten' ? 'aktiv' : ''} onClick=${() => setSkala('noten')}>Noten 1–6</button>
+        <button type="button" class=${skala === 'punkte' ? 'aktiv' : ''} onClick=${() => setSkala('punkte')}>Punkte 0–15</button>
+      </div>
+    </div>
+    ${fehler && html`<div class="fehler">${fehler}</div>`}
+    <div class="aktionen">
+      <button class="knopf zweit" onClick=${onAbbrechen}>Abbrechen</button>
+      <button class="knopf" disabled=${busy} onClick=${() => speichern(() => sb.from('enrollments')
+        .update({ class_name: klasse.trim() || null, grade_scale: skala }).eq('id', enr.id))}>Speichern</button>
+    </div>
+  <//>`;
+}
+
+function FachFormular({ fach, enr, faecher, schnitte, onFertig, onAbbrechen }) {
+  const [name, setName] = useState(fach?.name || '');
+  const [auswahl, setAuswahl] = useState([]);
+  const { busy, fehler, speichern } = useSpeichern(onFertig);
+  const vorhanden = new Set(faecher.map((f) => f.name.toLowerCase()));
+  const vorschlaege = STANDARD_FAECHER.filter((f) => !vorhanden.has(f.toLowerCase()));
+  const umschalten = (f) => setAuswahl((a) => (a.includes(f) ? a.filter((x) => x !== f) : [...a, f]));
+  const neu = [...auswahl, ...(name.trim() && !vorhanden.has(name.trim().toLowerCase()) ? [name.trim()] : [])];
+  const anzahlNoten = fach ? (schnitte[fach.id]?.grade_count || 0) : 0;
+
+  async function loeschen() {
+    const warnung = anzahlNoten > 0
+      ? `„${fach.name}“ löschen? Dabei werden auch ${anzahlNoten} Noten und alle Themen dieses Fachs gelöscht.`
+      : `„${fach.name}“ löschen?`;
+    if (!confirm(warnung)) return;
+    speichern(() => sb.from('subjects').delete().eq('id', fach.id));
+  }
+
+  if (fach) return html`<${Sheet} titel=${`${fach.name} bearbeiten`} onAbbrechen=${onAbbrechen}>
+    <label class="feld"><span>Name</span><input value=${name} onInput=${(e) => setName(e.target.value)} /></label>
+    ${fehler && html`<div class="fehler">${/duplicate|unique/i.test(fehler) ? 'Dieses Fach gibt es schon.' : fehler}</div>`}
+    <div class="aktionen">
+      <button class="knopf zweit" onClick=${onAbbrechen}>Abbrechen</button>
+      <button class="knopf" disabled=${busy || !name.trim()} onClick=${() => speichern(() => sb.from('subjects').update({ name: name.trim() }).eq('id', fach.id))}>Speichern</button>
+    </div>
+    <div class="fuss"><button style="color:var(--rot)" onClick=${loeschen}>Fach löschen</button></div>
+  <//>`;
+
+  return html`<${Sheet} titel="Fächer hinzufügen" onAbbrechen=${onAbbrechen}>
+    ${vorschlaege.length > 0 && html`<div class="feld"><span>Antippen zum Auswählen</span>
+      <div class="wahl">${vorschlaege.map((f) => html`<button type="button" class=${auswahl.includes(f) ? 'aktiv' : ''} onClick=${() => umschalten(f)} aria-pressed=${auswahl.includes(f)}>${f}</button>`)}</div>
+    </div>`}
+    <label class="feld"><span>Anderes Fach</span><input value=${name} onInput=${(e) => setName(e.target.value)} placeholder="z. B. Soko, Medienbildung" /></label>
+    ${fehler && html`<div class="fehler">${/duplicate|unique/i.test(fehler) ? 'Eines der Fächer gibt es schon.' : fehler}</div>`}
+    <div class="aktionen">
+      <button class="knopf zweit" onClick=${onAbbrechen}>Abbrechen</button>
+      <button class="knopf" disabled=${busy || neu.length === 0} onClick=${() => speichern(() => sb.from('subjects').insert(
+        neu.map((n, i) => ({ enrollment_id: enr.id, name: n, sort: faecher.length + i + 1 }))))}>
+        ${neu.length > 1 ? `${neu.length} Fächer hinzufügen` : 'Hinzufügen'}</button>
+    </div>
+  <//>`;
+}
+
+function StundeFormular({ tag, std, slot, enr, faecher, stunden, onFertig, onAbbrechen }) {
+  const [fachId, setFachId] = useState(slot?.subject_id || (slot ? '' : faecher[0]?.id || ''));
+  const [label, setLabel] = useState(slot && !slot.subject_id ? slot.label || '' : '');
+  const [modus, setModus] = useState(slot && !slot.subject_id ? 'sonstiges' : 'fach');
+  const [lsp, setLsp] = useState(slot?.is_lsp || false);
+  const [doppel, setDoppel] = useState(false);
+  const { busy, fehler, speichern } = useSpeichern(onFertig);
+  const naechsteBelegt = stunden.some((s) => s.weekday === tag && s.period === std + 1);
+
+  const zeile = (p) => ({
+    enrollment_id: enr.id, weekday: tag, period: p, is_lsp: lsp,
+    subject_id: modus === 'fach' ? fachId || null : null,
+    label: modus === 'sonstiges' ? label.trim() || null : null,
+  });
+  const gueltig = modus === 'fach' ? !!fachId : !!label.trim();
+
+  return html`<${Sheet} titel=${`${TAGE[tag - 1]}, ${std}. Stunde`} onAbbrechen=${onAbbrechen}>
+    <div class="reiter">
+      <button class=${modus === 'fach' ? 'aktiv' : ''} onClick=${() => setModus('fach')}>Fach</button>
+      <button class=${modus === 'sonstiges' ? 'aktiv' : ''} onClick=${() => setModus('sonstiges')}>Sonstiges</button>
+    </div>
+    ${modus === 'fach' ? html`<div class="feld"><div class="wahl">
+        ${faecher.map((f) => html`<button type="button" class=${fachId === f.id ? 'aktiv' : ''} onClick=${() => setFachId(f.id)}>${f.name}</button>`)}
+      </div></div>`
+    : html`<label class="feld"><span>Bezeichnung</span><input value=${label} onInput=${(e) => setLabel(e.target.value)} placeholder="z. B. Essen, Mittagspause" /></label>
+      <div class="wahl" style="margin:-6px 0 14px">${['Essen', 'Mittagspause', 'Förderunterricht'].map((x) => html`<button type="button" onClick=${() => setLabel(x)}>${x}</button>`)}</div>`}
+    <label class="zeile schalter">
+      <input type="checkbox" class="check" checked=${lsp} onChange=${(e) => setLsp(e.target.checked)} />
+      <div class="haupt"><div class="titel">LSP-Stunde</div><div class="sub">Wird gestrichelt angezeigt</div></div>
+    </label>
+    ${!slot && std < 12 && html`<label class="zeile schalter">
+      <input type="checkbox" class="check" checked=${doppel} onChange=${(e) => setDoppel(e.target.checked)} />
+      <div class="haupt"><div class="titel">Doppelstunde</div><div class="sub">Auch die ${std + 1}. Stunde gleich belegen${naechsteBelegt ? ' (überschreibt sie)' : ''}</div></div>
+    </label>`}
+    ${fehler && html`<div class="fehler">${fehler}</div>`}
+    <div class="aktionen">
+      <button class="knopf zweit" onClick=${onAbbrechen}>Abbrechen</button>
+      <button class="knopf" disabled=${busy || !gueltig} onClick=${() => speichern(() => sb.from('timetable_slots')
+        .upsert(doppel ? [zeile(std), zeile(std + 1)] : [zeile(std)], { onConflict: 'enrollment_id,weekday,period' }))}>Speichern</button>
+    </div>
+    ${slot && html`<div class="fuss"><button style="color:var(--rot)" onClick=${() => speichern(() => sb.from('timetable_slots').delete().eq('id', slot.id))}>Stunde freimachen</button></div>`}
+  <//>`;
+}
+
+function WechselFormular({ basis, aktuell, onFertig, onAbbrechen }) {
+  const [label, setLabel] = useState(naechstesJahr(aktuell?.label));
+  const [klassen, setKlassen] = useState(null);
+  const [stundenplan, setStundenplan] = useState(false);
+  const [bestaetigt, setBestaetigt] = useState(!aktuell);
+  const { busy, fehler, speichern } = useSpeichern(onFertig);
+
+  useEffect(() => {
+    (async () => {
+      let alt = [];
+      if (aktuell) ({ data: alt } = await sb.from('enrollments').select('*').eq('school_year_id', aktuell.id));
+      setKlassen(Object.fromEntries(basis.kinder.map((k) => {
+        const e = (alt || []).find((x) => x.student_id === k.id);
+        return [k.id, { dabei: true, klasse: aktuell ? naechsteKlasse(e?.class_name || '') : '', skala: e?.grade_scale || 'noten' }];
+      })));
+    })();
+  }, []);
+
+  const setzen = (id, feld, wert) => setKlassen((k) => ({ ...k, [id]: { ...k[id], [feld]: wert } }));
+  const doppelt = basis.jahre.some((j) => j.label === label.trim());
+  const auswahl = klassen ? Object.entries(klassen).filter(([, v]) => v.dabei) : [];
+
+  return html`<${Sheet} titel=${aktuell ? 'Schuljahreswechsel' : 'Erstes Schuljahr anlegen'} onAbbrechen=${onAbbrechen}>
+    <label class="feld"><span>Schuljahr</span><input value=${label} onInput=${(e) => setLabel(e.target.value)} placeholder="z. B. 2027/28" /></label>
+    ${doppelt && html`<div class="fehler">Dieses Schuljahr gibt es schon.</div>`}
+    ${!klassen ? html`<div class="leer">Lädt …</div>` : html`
+      <div class="feld"><span>Kinder und neue Klassen</span>
+        <div class="liste">
+          ${basis.kinder.map((k) => html`<div class="zeile wechsel-zeile">
+            <input type="checkbox" class="check" checked=${klassen[k.id].dabei} onChange=${(e) => setzen(k.id, 'dabei', e.target.checked)} aria-label=${`${k.name} übernehmen`} />
+            <div class="haupt"><div class="titel" style=${`color:${k.color}`}>${k.name}</div>
+              <select value=${klassen[k.id].skala} onChange=${(e) => setzen(k.id, 'skala', e.target.value)} disabled=${!klassen[k.id].dabei} class="skala">
+                <option value="noten">Noten 1–6</option><option value="punkte">Punkte 0–15</option>
+              </select></div>
+            <input class="klasse-feld" value=${klassen[k.id].klasse} onInput=${(e) => setzen(k.id, 'klasse', e.target.value)}
+              placeholder="Klasse" disabled=${!klassen[k.id].dabei} aria-label=${`Klasse ${k.name}`} />
+          </div>`)}
+        </div>
+      </div>`}
+    ${aktuell && html`
+      <label class="zeile schalter">
+        <input type="checkbox" class="check" checked=${stundenplan} onChange=${(e) => setStundenplan(e.target.checked)} />
+        <div class="haupt"><div class="titel">Stundenplan übernehmen</div><div class="sub">Meist ändert er sich. Dann aus lassen und neu eintragen.</div></div>
+      </label>
+      <p class="leise klein">Die Fächer werden übernommen und lassen sich danach anpassen. ${aktuell.label} wandert ins Archiv, alle Noten, Themen und Termine bleiben dort erhalten.</p>
+      <label class="zeile schalter">
+        <input type="checkbox" class="check" checked=${bestaetigt} onChange=${(e) => setBestaetigt(e.target.checked)} />
+        <div class="haupt"><div class="titel">Ja, neues Schuljahr ${label} starten</div></div>
+      </label>`}
+    ${fehler && html`<div class="fehler">${fehler}</div>`}
+    <div class="aktionen">
+      <button class="knopf zweit" onClick=${onAbbrechen}>Abbrechen</button>
+      <button class="knopf" disabled=${busy || !bestaetigt || doppelt || !label.trim() || auswahl.length === 0} onClick=${() => speichern(() => sb.rpc('schuljahr_wechseln', {
+        p_family: basis.mitglied.family_id, p_label: label.trim(), p_stundenplan: stundenplan,
+        p_klassen: Object.fromEntries(auswahl.map(([id, v]) => [id, { klasse: v.klasse.trim(), skala: v.skala }])),
+      }))}>${busy ? 'Wird angelegt …' : aktuell ? 'Schuljahr wechseln' : 'Anlegen'}</button>
+    </div>
   <//>`;
 }
 
@@ -685,19 +1025,23 @@ function useSpeichern(onFertig) {
   return { busy, fehler, speichern };
 }
 
-function NotenFormular({ fach, onFertig, onAbbrechen }) {
+function NotenFormular({ fach, punkte, onFertig, onAbbrechen }) {
   const [art, setArt] = useState('Klassenarbeit');
   const [basis, setBasis] = useState(2);
   const [tendenz, setTendenz] = useState('');
   const [tag, setTag] = useState(heuteISO());
   const [info, setInfo] = useState('');
   const { busy, fehler, speichern } = useSpeichern(onFertig);
-  const n = noteBerechnen(basis, tendenz);
+  const [pkt, setPkt] = useState(10);
+  const n = punkte ? { label: String(pkt), value: pkt } : noteBerechnen(basis, tendenz);
 
   return html`<${Sheet} titel=${`Note in ${fach.name}`} onAbbrechen=${onAbbrechen}>
     <div class="feld"><span>Art</span>
       <div class="wahl">${NOTEN_ARTEN.map((a) => html`<button type="button" class=${art === a ? 'aktiv' : ''} onClick=${() => setArt(a)}>${a}</button>`)}</div>
     </div>
+    ${punkte ? html`<div class="feld"><span>Punkte</span>
+      <div class="wahl ziffern punkte">${Array.from({ length: 16 }, (_, i) => 15 - i).map((z) => html`<button type="button" class=${pkt === z ? 'aktiv' : ''} onClick=${() => setPkt(z)}>${z}</button>`)}</div>
+    </div>` : html`
     <div class="feld"><span>Note</span>
       <div class="wahl ziffern">${[1, 2, 3, 4, 5, 6].map((z) => html`<button type="button" class=${basis === z ? 'aktiv' : ''} onClick=${() => { setBasis(z); if (z === 6 && tendenz === 'bis') setTendenz(''); }}>${z}</button>`)}</div>
     </div>
@@ -706,8 +1050,8 @@ function NotenFormular({ fach, onFertig, onAbbrechen }) {
         ${[['', 'glatt'], ['+', `${basis}+`], ['-', `${basis}−`], ...(basis < 6 ? [['bis', `${basis}–${basis + 1}`]] : [])].map(([id, t]) =>
           html`<button type="button" class=${tendenz === id ? 'aktiv' : ''} onClick=${() => setTendenz(id)}>${t}</button>`)}
       </div>
-    </div>
-    <p class="leise klein">Wird gespeichert als <strong>${noteText(n.label, n.value)}</strong> (Wert ${String(n.value).replace('.', ',')}${art === 'Klassenarbeit' ? ', zählt doppelt' : ''}).</p>
+    </div>`}
+    <p class="leise klein">Wird gespeichert als <strong>${noteText(n.label, n.value)}${punkte ? ' Punkte' : ''}</strong>${punkte ? '' : ` (Wert ${String(n.value).replace('.', ',')})`}${art === 'Klassenarbeit' ? ', zählt doppelt' : ''}.</p>
     <label class="feld"><span>Datum</span><input type="date" value=${tag} onInput=${(e) => setTag(e.target.value)} /></label>
     <label class="feld"><span>Bemerkung (optional)</span><input value=${info} onInput=${(e) => setInfo(e.target.value)} placeholder="z. B. Thema der Arbeit" /></label>
     ${fehler && html`<div class="fehler">${fehler}</div>`}

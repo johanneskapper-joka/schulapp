@@ -1,7 +1,7 @@
 {
   "name": "Schulapp",
   "short_name": "Schulapp",
-  "description": "Noten, Stundenplan und Aufgaben für Mats und Bene",
+  "description": "Noten, Stundenplan, Termine und Aufgaben für die ganze Familie",
   "lang": "de",
   "start_url": "./",
   "scope": "./",
